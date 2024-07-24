@@ -158,7 +158,7 @@ class _MainPageState extends State<MainPage> {
             await _changeAmount(context, coin);
           },
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.values.last,
             children: [
               SizedBox(
                 width: MediaQuery.sizeOf(context).width * .1,
@@ -168,28 +168,40 @@ class _MainPageState extends State<MainPage> {
                 width: 10,
               ),
               SizedBox(
-                width: MediaQuery.sizeOf(context).width * .8,
-                child: Center(
-                    child: Column(
+                width: MediaQuery.sizeOf(context).width * .2,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "Name: ${coin.name}",
-                      style: const TextStyle(fontSize: 20),
+                      coin.name,
+                      style: const TextStyle(
+                        fontSize: 20,
+                      ),
                     ),
                     Text(
                       "Price USD: \$${coin.price.toStringAsFixed(2)}",
-                      style: const TextStyle(fontSize: 20),
-                    ),
-                    Text(
-                      "Holdings: ${coin.total}",
-                      style: const TextStyle(fontSize: 20),
-                    ),
-                    Text(
-                      "Cash Amount: \$${coin.amount.toStringAsFixed(2)}",
-                      style: const TextStyle(fontSize: 20),
+                      style: const TextStyle(
+                          fontSize: 15, fontStyle: FontStyle.italic),
                     )
                   ],
-                )),
+                ),
+              ),
+              SizedBox(
+                width: MediaQuery.sizeOf(context).width * .4,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Holdings: ${coin.total} ${coin.coinID}",
+                      style: const TextStyle(fontSize: 20),
+                    ),
+                    Text(
+                      "USD Amount: \$${coin.amount.toStringAsFixed(2)}",
+                      style: const TextStyle(
+                          fontSize: 15, fontStyle: FontStyle.italic),
+                    )
+                  ],
+                ),
               )
             ],
           ),
@@ -202,8 +214,8 @@ class _MainPageState extends State<MainPage> {
     if (temp == null) {
       return const LoadingScreen();
     } else {
-      coinsModel = coinsModel ?? temp!.$1;
-      lastUpdate = lastUpdate ?? temp!.$2;
+      coinsModel ??= temp!.$1;
+      lastUpdate ??= temp!.$2;
     }
     return Scaffold(
       bottomNavigationBar: BottomAppBar(
@@ -216,20 +228,12 @@ class _MainPageState extends State<MainPage> {
             IconButton(
                 onPressed: () async {
                   if (coinsModel!.coins.isEmpty) {
-                    ScaffoldMessenger.of(context).clearSnackBars();
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                        content: Center(
-                      child: Text("You have no coins to refresh"),
-                    )));
+                    snackbarShow(context, "You have no coins to refresh!");
                     return;
                   }
                   if (DateTime.now().difference(lastUpdate!).inSeconds < 60) {
-                    ScaffoldMessenger.of(context).clearSnackBars();
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                        content: Center(
-                      child: Text(
-                          "The api is updated every 60 seconds. So if you refresh now no new data will be pulled."),
-                    )));
+                    snackbarShow(context,
+                        "The api is updated every 60 seconds. So if you refresh now no new data will be pulled.");
                     return;
                   }
                   await reloadPage(context, false);
@@ -282,7 +286,7 @@ class _MainPageState extends State<MainPage> {
               Navigator.of(context).pop();
               int prev = coinsModel!.coins.length;
               await _searchBar(context);
-              if (!mounted || search.text == "") return;
+              if (!context.mounted || search.text == "") return;
               await Navigator.of(context).push(MaterialPageRoute(
                 builder: (context) {
                   return SearchCoinsLoader(
@@ -290,7 +294,7 @@ class _MainPageState extends State<MainPage> {
                 },
               ));
               search.clear();
-              if (prev != coinsModel!.coins.length && mounted) {
+              if (prev != coinsModel!.coins.length && context.mounted) {
                 await reloadPage(context, true);
               }
             },
@@ -304,6 +308,14 @@ class _MainPageState extends State<MainPage> {
     );
   }
 
+  void snackbarShow(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Center(
+      child: Text(message),
+    )));
+  }
+
   Future<void> reloadPage(BuildContext context, bool cameFromOtherPage) async {
     Navigator.of(context).push(MaterialPageRoute(
       builder: (context) {
@@ -314,7 +326,7 @@ class _MainPageState extends State<MainPage> {
     if (temp) {
       await SessionManager.setLastUpdate();
       lastUpdate = await SessionManager.getLastUpdate();
-      if (!mounted) return;
+      if (!context.mounted) return;
       Navigator.pop(context);
       reload();
       ScaffoldMessenger.of(context).clearSnackBars();
@@ -323,7 +335,7 @@ class _MainPageState extends State<MainPage> {
         child: Text(cameFromOtherPage ? "Added Coins" : "Updated Coin Prices."),
       )));
     } else {
-      if (!mounted) return;
+      if (!context.mounted) return;
       Navigator.pop(context);
       ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
