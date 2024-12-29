@@ -9,6 +9,6 @@ class FailMessageWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return const Center(
         child: Text(
-            "Something went wrong. Possibly to many api calls please wait 1 minute before trying again."));
+            "Something went wrong. Possibly to many api calls; please wait 1 minute before trying again."));
   }
 }

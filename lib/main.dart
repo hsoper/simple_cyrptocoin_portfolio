@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 
 void main() async {
   if (Platform.isWindows) {
-    sqfliteFfiInit(); // this is only for windows I did import something in the pubspec.yaml, same import from mp3
+    sqfliteFfiInit(); // this is only for windows
     databaseFactory = databaseFactoryFfi;
   }
   runApp(MaterialApp(
